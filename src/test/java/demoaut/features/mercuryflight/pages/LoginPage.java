@@ -1,5 +1,6 @@
 package demoaut.features.mercuryflight.pages;
 
+import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebElement;
@@ -28,6 +29,11 @@ public class LoginPage extends AbstractWebPage {
 
     public WebElement getPasswordInput() {
         return getNavigator().findElement(By.name("password"));
+    }
+
+    public WebElement getInputName(String name) {
+        name = StringUtils.uncapitalize(name);
+        return getNavigator().findElement(By.name(name));
     }
 
     public WebElement getSingInButton() {

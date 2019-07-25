@@ -4,13 +4,16 @@ import demoaut.features.mercuryflight.entities.Person;
 import demoaut.features.mercuryflight.pages.*;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
-import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
+import io.cucumber.java.pt.Dado;
+import io.cucumber.java.pt.E;
+import io.cucumber.java.pt.Entao;
+import io.cucumber.java.pt.Quando;
 import io.github.bonigarcia.wdm.ChromeDriverManager;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
+
+import java.util.HashMap;
 
 import static java.lang.Thread.sleep;
 import static org.junit.Assert.assertEquals;
@@ -26,7 +29,7 @@ public class ReservarTicketSteps {
     FlightOptionPage flightOptionPage;
     BookAFlightPage bookAFlightPage;
     OrderPage orderPage;
-    private String user = "mercury", password = user;
+    HashMap<String, String> testData = new HashMap<>();
 
 
     @Before
@@ -34,177 +37,181 @@ public class ReservarTicketSteps {
         ChromeDriverManager.chromedriver().setup();
         navigator = new ChromeDriver();
         person = new Person();
+        testData.put("UserName", "mercury");
+        testData.put("Password", "mercury");
     }
 
     @After
     public void cleanUp() {
-        System.out.println("    Order: #" + orderPage.getOrder());
+        if (orderPage != null) {
+            System.out.println("    Order: #" + orderPage.getOrder());
+        }
         navigator.quit();
         person = null;
     }
 
-    @Given("a URL")
-    public void aURL() {
+    @Dado("Acessar a URL")
+    public void aURL() throws InterruptedException {
+        String u = navigator.getCurrentUrl();
         navigator.navigate().to(SITE_URL);
-    }
-
-    @And("login screen of application")
-    public void loginScreenOfApplication() {
+        while (u.equals(navigator.getCurrentUrl())) {
+            sleep(2000);
+        }
+        sleep(2000);
         loginPage = new LoginPage(navigator);
     }
 
-    @And("input some valid user")
-    public void someValidUser() {
-        loginPage.getUsernameInput().sendKeys(user);
+    @E("Informar {string}")
+    public void loginScreenOfApplication(String name) {
+        loginPage.getInputName(name).sendKeys(testData.get(name));
+        if (name.equalsIgnoreCase("Password")) {
+            assertEquals(testData.get(name), loginPage.getPasswordInput().getAttribute("value"));
+        }
     }
 
-    @When("input his password")
-    public void putHisPassword() {
-        loginPage.getPasswordInput().sendKeys(password);
-    }
-
-    @Then("password is filled")
-    public void passwordIsFilled() throws InterruptedException {
-        sleep(2000);
-        assertEquals(password, loginPage.getPasswordInput().getAttribute("value"));
-    }
-
-    @When("try Sing-in")
-    public void trySingIn() throws InterruptedException {
+    @Quando("Clicar no botao Sign-In")
+    public void whenClicarNoBotao() throws InterruptedException {
         String u = navigator.getCurrentUrl();
         loginPage.getSingInButton().click();
         while (u.equals(navigator.getCurrentUrl())) {
             sleep(2000);
         }
         sleep(2000);
-    }
-
-    @Then("should go to Flight Finder screen")
-    public void shouldGoToFlightFinder() {
         flightFinderPage = new FlightFinderPage(navigator);
+    }
+
+    @Entao("Logado")
+    public void thenLogado() {
         assertTrue(flightFinderPage.isPage());
     }
 
-    @Given("I am logged")
-    public void iAmLogged() {
-        assertTrue(flightFinderPage.isPage());
-    }
-
-    @When("select city from")
-    public void selectCityFrom() {
+    @Quando("Selecionar a cidade de origem - Departing From")
+    public void whenSelecionarACidadeDeOrigem() {
         flightFinderPage.getFromOptions().get(flightFinderPage.getFromOptions().size() % 3).click();
     }
 
-    @And("select city in")
-    public void selectCityIn() {
+    @E("Selecionar a cidade de destino - Arriving In")
+    public void whenSelecionarACidadeDeDestino() throws InterruptedException {
         flightFinderPage.getToOptions().get(3 + flightFinderPage.getToOptions().size() % 4).click();
     }
 
-    @And("select postpone data")
+    @Quando("Selecionar a cidade de origem - Departing From {string}")
+    public void whenSelecionarACidadeDeOrigem(String cidade) {
+        for (WebElement webElement : flightFinderPage.getFromOptions()) {
+            if (webElement.getAttribute("value").equalsIgnoreCase(cidade)) {
+                webElement.click();
+            }
+        }
+    }
+
+    @E("Selecionar a cidade de destino - Arriving In {string}")
+    public void whenSelecionarACidadeDeDestino(String cidade) throws InterruptedException {
+        for (WebElement webElement : flightFinderPage.getToOptions()) {
+            if (webElement.getAttribute("value").equalsIgnoreCase(cidade)) {
+                webElement.click();
+            }
+        }
+    }
+
+    @E("Selecionar data > que data corrente")
     public void selectPostponeData() {
         flightFinderPage.travelDatePostpone();
     }
 
-    @And("select class")
-    public void selectClass() {
+    @E("Selecionar data {string}")
+    public void selectPostponeData(String data) {
+        flightFinderPage.travelDatePostpone(data);
+    }
+
+    @E("Selecionar a Class")
+    public void selecionarAClass() {
         flightFinderPage.getSelectClass().click();
     }
 
-    @When("select passengers {int}")
-    public void selectPassengers(int arg0) {
-        flightFinderPage.getPassengers().selectByValue(String.format("%d", arg0));
+    @E("Selecionar a Class {string}")
+    public void selecionarAClass(String classT) {
+        flightFinderPage.getSelectClass(classT).click();
     }
 
-    @Then("should passengers are {int}")
-    public void shouldPassengersAre(int arg0) {
-        assertTrue(flightFinderPage.getPassengers().getFirstSelectedOption().getAttribute("value").equalsIgnoreCase(String.format("%d", arg0)));
+    @E("Selecionar Passengers = {int}")
+    public void selectPassengers(int qnt) {
+        flightFinderPage.getPassengers().selectByValue(String.format("%d", qnt));
+        assertTrue(flightFinderPage.getPassengers().getFirstSelectedOption().getAttribute("value").equalsIgnoreCase(String.format("%d", qnt)));
     }
 
-    @When("click on flight finder continue button")
-    public void clickOnFlightFinderContinueButton() throws InterruptedException {
+    @Entao("Clicar no botao Continue do Flight Finder")
+    public void clicarNoBotaoContinueDoFlightFinder() throws InterruptedException {
         String u = navigator.getCurrentUrl();
         flightFinderPage.getContinueButton().click();
         while (u.equals(navigator.getCurrentUrl())) {
             sleep(2000);
         }
         sleep(2000);
-    }
-
-    @Then("should appears select flight screen")
-    public void shouldAppearsSelectFlightScreen() {
         flightOptionPage = new FlightOptionPage(navigator);
         assertTrue(flightOptionPage.isPage());
     }
 
-    @When("select flight option")
-    public void selectFlightOption() {
+    @E("Selecionar o voo")
+    public void selecionarOVoo() {
         flightOptionPage.getOutFlight().get(1).click();
         flightOptionPage.getInFlight().get(1).click();
+        int b = 0;
+        if (!flightOptionPage.getOutFlight().get(1).getAttribute("checked").isEmpty()) b++;
+        if (!flightOptionPage.getInFlight().get(1).getAttribute("checked").isEmpty()) b++;
+
+        assertEquals(2, b);
     }
 
-    @Then("should flight is selected")
-    public void shouldFlightIsSelected() {
-        assertTrue(Boolean.TRUE);
+    @E("Selecionar o voo {string}")
+    public void selecionarOVoo(String voo) {
+        flightOptionPage.getOptionFlight(voo).click();
     }
 
-    @When("click on select flight continue button")
-    public void clickOnSelectFlightContinueButton() throws InterruptedException {
+    @Entao("Clicar no botao Continue do Select Flight")
+    public void clicarNoBotaoContinueDoSelectFlight() throws InterruptedException {
         String u = navigator.getCurrentUrl();
         flightOptionPage.getContinueButton().click();
         while (u.equals(navigator.getCurrentUrl())) {
             sleep(2000);
         }
         sleep(2000);
-    }
-
-    @Then("should appears book a flight")
-    public void shouldAppearsBookAFlight() {
         bookAFlightPage = new BookAFlightPage(navigator);
-    }
-
-    @And("summary with select options")
-    public void summaryWithSelectOptions() {
         assertTrue(bookAFlightPage.isPage());
     }
 
-    @When("fill first name")
-    public void fillFirstName() {
+    @E("Preencher First name e Last Name")
+    public void fillFirstNamendLast() {
         bookAFlightPage.getFirstName().sendKeys(person.getFirstName());
-    }
-
-    @And("fill last name")
-    public void fillLastName() {
         bookAFlightPage.getLastName().sendKeys(person.getLastName());
     }
 
-    @And("fill cred card bank number")
+    @E("Preencher numero do cartao")
     public void fillCredCardBankNumber() {
         bookAFlightPage.getCreditNumber().sendKeys(person.getCredCard());
     }
 
-    @When("fill passenger name")
-    public void fillPassengerName() {
+    @E("Preencher o nome do passageiro {string}")
+    public void fillPassengerName(String namePassenger) {
         bookAFlightPage.getFirstNamePassengers().sendKeys(person.getFirstName());
-    }
-
-    @Then("passenger name is the same name")
-    public void passengerNameIsTheSameName() {
         bookAFlightPage.getLastNamePassengers().sendKeys(person.getLastName());
+        assertTrue(bookAFlightPage.getFirstNamePassengers().getAttribute("value").equalsIgnoreCase(person.getFirstName()));
     }
 
-    @When("click on Secure Purchase")
-    public void clickOnSecurePurchase() throws InterruptedException {
+    @Entao("Clicar em Secure Purchase")
+    public void passengerNameIsTheSameName() throws InterruptedException {
         String u = navigator.getCurrentUrl();
         bookAFlightPage.getContinueButton().click();
         while (u.equals(navigator.getCurrentUrl())) {
             sleep(2000);
         }
         sleep(2000);
-    }
-
-    @Then("should receive some order")
-    public void shouldReceiveSomeOrder() {
         orderPage = new OrderPage(navigator);
         assertTrue(orderPage.isPage());
     }
+
+    @Quando("Selecionar tipo viagem {string}")
+    public void selecionarTipoViagem(String arg0) {
+        flightFinderPage.getOneWay().click();
+    }
+
 }

@@ -1,35 +1,47 @@
-# language: en
-Feature: Ticket Reserve
+# language: pt
+Funcionalidade: Reservar Ticket
 
-  Background: Logged
-    Given a URL
-    And login screen of application
-    And input some valid user
-    When input his password
-    Then password is filled
-    When try Sing-in
-    Then should go to Flight Finder screen
+  Contexto: Logado
+    Dado Acessar a URL
+    E Informar "UserName"
+    E Informar "Password"
+    Quando Clicar no botao Sign-In
+    Entao Logado
 
-  Scenario: Reserve 1 Ticket
-    Given I am logged
-    When select city from
-    And select city in
-    And select postpone data
-    And select class
-    When select passengers 1
-    Then should passengers are 1
-    When click on flight finder continue button
-    Then should appears select flight screen
-    When select flight option
-    Then should flight is selected
-    When click on select flight continue button
-    Then should appears book a flight
-    And summary with select options
-    When fill first name
-    And fill last name
-    And fill cred card bank number
-    When fill passenger name
-    Then passenger name is the same name
-    When click on Secure Purchase
-    Then should receive some order
+  @cenario1
+  Cenario: 1 Reservar 1 Ticket
+    Dado Logado
+    Quando Selecionar a cidade de origem - Departing From
+    E Selecionar a cidade de destino - Arriving In
+    E Selecionar data > que data corrente
+    E Selecionar a Class
+    E Selecionar Passengers = 1
+    Entao Clicar no botao Continue do Flight Finder
+    E Selecionar o voo
+    Entao Clicar no botao Continue do Select Flight
+    E Preencher First name e Last Name
+    E Preencher numero do cartao
+    Entao Clicar em Secure Purchase
+
+  @cenario2
+  Esquema do Cenario: 2 Criar massa de dados - Reserva
+    Dado Logado
+    Quando Selecionar tipo viagem "One Way"
+    E Selecionar a cidade de origem - Departing From "<DepartingFrom>"
+    E Selecionar a cidade de destino - Arriving In "<ArrivingIn>"
+    E Selecionar data "<On>"
+    E Selecionar a Class "<Class>"
+    E Selecionar Passengers = <Passengers>
+    Entao Clicar no botao Continue do Flight Finder
+    E Selecionar o voo "<FlightNumber>"
+    Entao Clicar no botao Continue do Select Flight
+    E Preencher First name e Last Name
+    E Preencher numero do cartao
+    E Preencher o nome do passageiro "Passenger Name"
+    Entao Clicar em Secure Purchase
+    Exemplos:
+      | DepartingFrom | ArrivingIn | On         | Class          | Passengers | FlightNumber            |
+      | San Francisco | Portland   | 27/12/2019 | Economy class  | 1          | Pangaea Airlines 362    |
+      | Frankfurt     | Zurich     | 25/10/2019 | Business class | 2          | Blue Skies Airlines 361 |
+
 
